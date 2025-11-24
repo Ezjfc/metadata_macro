@@ -3,8 +3,58 @@
 /// The main struct can be defined in whatever way desired.
 /// But all fields in each metadata struct will always be public.
 ///
-/// This macro rule receives a main struct and multiple metadata structs to recursively copy-paste
-/// the same field names for each of the structs in the macro below.
+/// This macro receives a main struct and multiple metadata structs. The main struct will remain in
+/// its original form while its fields will change the type and be taken to each metadata struct.
+///
+/// # Examples
+/// ```
+/// #[macro_use] extern crate structfield_metadata;
+///
+/// fn main() {
+///     metadata!({
+///         #[derive(Default, PartialEq, Debug)]
+///         struct YourStruct {
+///             pub field_a: bool,
+///             field_b: usize,
+///         }
+///     }, {
+///         #[derive(PartialEq, Debug)] struct YourStructDescription: &'static str;
+///         #[derive(Default, PartialEq, Debug)] struct YourStructOtherMetadata: Option<f64>;
+///     });
+///
+///     impl Default for YourStructDescription {
+///         fn default() -> Self {
+///             Self {
+///                 field_a: "Describes field_a",
+///                 field_b: "Describes field_b",
+///             }
+///         }
+///     }
+///
+///     impl YourStructDescription {
+///         fn i18n_some_language() -> Self {
+///             Self {
+///                 field_a: "Describes field_a in other language",
+///                 field_b: "Describes field_b in other language",
+///             }
+///         }
+///     }
+///
+///     assert_eq!(YourStruct::default(), YourStruct { field_a: false, field_b: 0 });
+///     assert_eq!(YourStructDescription::default(), YourStructDescription {
+///         field_a: "Describes field_a",
+///         field_b: "Describes field_b",
+///     });
+///     assert_eq!(YourStructDescription::i18n_some_language(), YourStructDescription {
+///         field_a: "Describes field_a in other language",
+///         field_b: "Describes field_b in other language",
+///     });
+///     assert_eq!(YourStructOtherMetadata::default(), YourStructOtherMetadata {
+///         field_a: None,
+///         field_b: None,
+///     });
+/// }
+/// ```
 #[macro_export]
 macro_rules! metadata {
     ($main_struct:tt, {
@@ -14,10 +64,9 @@ macro_rules! metadata {
             struct $metadata_struct:ident: $metadata_type:ty;
         )+
     }) => {
+        $crate::put_struct!($main_struct);
         $(
-            use put_struct;
-            put_struct!($main_struct);
-            metadata_single!(
+            metadata_only!(
                 $main_struct,
                 $(#[$metadata_attrs])* $metadata_vis struct $metadata_struct: $metadata_type
             );
@@ -28,10 +77,55 @@ macro_rules! metadata {
 /// The main struct can be defined in whatever way desired.
 /// But all fields in the metadata struct will always be public.
 ///
-/// This macro receives a main struct and a metadata struct. The metadata struct will takeover all
-/// fields in the main struct but replace their types to the given one:
+/// This macro receives a main struct and a metadata struct. The main struct will be discarded
+/// its fields will change the type and be taken to the metadata struct.
+/// # Examples
+/// ```
+/// #[macro_use] extern crate structfield_metadata;
+///
+/// fn main() {
+///     metadata_only!(
+///         {
+///             #[derive(Default, PartialEq, Debug)]
+///             struct YourStruct {
+///                 pub field_a: bool,
+///                 field_b: usize,
+///             }
+///         },
+///         #[derive(PartialEq, Debug)]
+///         struct YourStructDescription: &'static str
+///     );
+///
+///     impl Default for YourStructDescription {
+///         fn default() -> Self {
+///             Self {
+///                 field_a: "Describes field_a",
+///                 field_b: "Describes field_b",
+///             }
+///         }
+///     }
+///
+///     impl YourStructDescription {
+///         fn i18n_some_language() -> Self {
+///             Self {
+///                 field_a: "Describes field_a in other language",
+///                 field_b: "Describes field_b in other language",
+///             }
+///         }
+///     }
+///
+///     assert_eq!(YourStructDescription::default(), YourStructDescription {
+///         field_a: "Describes field_a",
+///         field_b: "Describes field_b",
+///     });
+///     assert_eq!(YourStructDescription::i18n_some_language(), YourStructDescription {
+///         field_a: "Describes field_a in other language",
+///         field_b: "Describes field_b in other language",
+///     });
+/// }
+/// ```
 #[macro_export]
-macro_rules! metadata_single {
+macro_rules! metadata_only {
     (
         {
             $(#[$attrs:meta])*
@@ -55,7 +149,7 @@ macro_rules! metadata_single {
             $(
                 $(#[$field_attrs])*
                 $field_vis
-                $field: $metadata_type
+                $field: $metadata_type,
             )*
         }
     };
@@ -64,7 +158,8 @@ macro_rules! metadata_single {
 /// This rule is almost no-op except maintaining the macro hygigene of Rust.
 /// See: https://stackoverflow.com/a/75530574/13787084
 /// It receives the main struct and pastes it:
-#[allow(unused_macros)]
+#[macro_export]
+#[deprecated = "For internal use only."]
 macro_rules! put_struct {
     ({
         $(#[$attrs:meta])*
@@ -84,7 +179,7 @@ macro_rules! put_struct {
             $(
                 $(#[$field_attrs])*
                 $field_vis
-                $field: $type
+                $field: $type,
             )*
         }
     };
