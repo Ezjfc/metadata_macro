@@ -1,5 +1,3 @@
-//! Util macro to attach read-only metadata to structs in the parent module.
-
 /// The main struct can be defined in whatever way desired.
 /// But all fields in each metadata struct will always be public.
 ///
@@ -124,8 +122,50 @@ macro_rules! metadata {
 ///     });
 /// }
 /// ```
+/// ```
+/// #[macro_use] extern crate structfield_metadata;
+///
+/// fn main() {
+///     metadata_only!(
+///         {
+///             #[derive(Default, PartialEq, Debug)]
+///             struct YourStruct(bool, usize);
+///         },
+///         #[derive(PartialEq, Debug)]
+///         struct YourStructDescription: &'static str
+///     );
+///
+///     impl Default for YourStructDescription {
+///         fn default() -> Self {
+///             Self(
+///                 "Describes field_a",
+///                 "Describes field_b",
+///             )
+///         }
+///     }
+///
+///     impl YourStructDescription {
+///         fn i18n_some_language() -> Self {
+///             Self (
+///                  "Describes field_a in other language",
+///                  "Describes field_b in other language",
+///             )
+///         }
+///     }
+///
+///     assert_eq!(YourStructDescription::default(), YourStructDescription(
+///         "Describes field_a",
+///         "Describes field_b",
+///     ));
+///     assert_eq!(YourStructDescription::i18n_some_language(), YourStructDescription(
+///         "Describes field_a in other language",
+///         "Describes field_b in other language",
+///     ));
+/// }
+/// ```
 #[macro_export]
 macro_rules! metadata_only {
+    // This rule handles structs:
     (
         {
             $(#[$attrs:meta])*
@@ -148,10 +188,37 @@ macro_rules! metadata_only {
         struct $metadata_struct {
             $(
                 $(#[$field_attrs])*
-                $field_vis
+                pub
                 $field: $metadata_type,
             )*
         }
+    };
+    // This rule handles tuple structs:
+    (
+        {
+            $(#[$attrs:meta])*
+            $vis:vis
+            struct $name:ident (
+                $(
+                    $(#[$field_attrs:meta])*
+                    $type:ty
+                ),*
+                $(,)?
+            );
+        },
+        $(#[$metadata_attrs:meta])*
+        $metadata_vis:vis
+        struct $metadata_struct:ident: $metadata_type:ty
+    ) => {
+        $(#[$metadata_attrs])*
+        $metadata_vis
+        struct $metadata_struct (
+            $(
+                $(#[$field_attrs])*
+                pub
+                $metadata_type,
+            )*
+        );
     };
 }
 
@@ -161,6 +228,7 @@ macro_rules! metadata_only {
 #[macro_export]
 #[deprecated = "For internal use only."]
 macro_rules! put_struct {
+    // This rule handles structs:
     ({
         $(#[$attrs:meta])*
         $vis:vis
@@ -182,5 +250,26 @@ macro_rules! put_struct {
                 $field: $type,
             )*
         }
+    };
+    // This rule handles tuple structs:
+    ({
+        $(#[$attrs:meta])*
+        $vis:vis
+        struct $name:ident(
+            $(
+                $(#[$field_attrs:meta])*
+                $type:ty
+            ),*
+            $(,)?
+        );
+    }) => {
+        $(#[$attrs])*
+        $vis
+        struct $name(
+            $(
+                $(#[$field_attrs])*
+                $type,
+            )*
+        );
     };
 }
