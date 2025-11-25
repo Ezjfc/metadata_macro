@@ -6,6 +6,8 @@
 /// its original form while its fields will change the type and be taken to each metadata struct.
 ///
 /// # Examples
+/// This example declares a private main struct with two fields and a private metadata struct to
+/// hold the multilingual description of the fields:
 /// ```
 /// #[macro_use] extern crate structfield_metadata;
 ///
@@ -18,7 +20,6 @@
 ///             }
 ///         },
 ///         #[derive(PartialEq, Debug)] struct YourStructDescription: &'static str,
-///         #[derive(Default, PartialEq, Debug)] struct YourStructOtherMetadata: Option<f64>,
 ///     );
 ///
 ///     impl Default for YourStructDescription {
@@ -48,12 +49,10 @@
 ///         field_a: "Describes field_a in other language",
 ///         field_b: "Describes field_b in other language",
 ///     });
-///     assert_eq!(YourStructOtherMetadata::default(), YourStructOtherMetadata {
-///         field_a: None,
-///         field_b: None,
-///     });
 /// }
 /// ```
+///
+/// Feel free to share your use cases by pull requests!
 #[macro_export]
 macro_rules! metadata {
     (
@@ -82,6 +81,8 @@ macro_rules! metadata {
 /// This macro receives a main struct and a metadata struct. The main struct will be discarded
 /// its fields will change the type and be taken to the metadata struct.
 /// # Examples
+/// This example only declares a private metadata struct to hold the multilingual description of
+/// two fields:
 /// ```
 /// #[macro_use] extern crate structfield_metadata;
 ///
@@ -124,47 +125,7 @@ macro_rules! metadata {
 ///     });
 /// }
 /// ```
-/// ```
-/// #[macro_use] extern crate structfield_metadata;
-///
-/// fn main() {
-///     metadata_only!(
-///         {
-///             #[derive(Default, PartialEq, Debug)]
-///             struct YourStruct(bool, usize);
-///         },
-///         #[derive(PartialEq, Debug)]
-///         struct YourStructDescription: &'static str
-///     );
-///
-///     impl Default for YourStructDescription {
-///         fn default() -> Self {
-///             Self(
-///                 "Describes field_a",
-///                 "Describes field_b",
-///             )
-///         }
-///     }
-///
-///     impl YourStructDescription {
-///         fn i18n_some_language() -> Self {
-///             Self (
-///                  "Describes field_a in other language",
-///                  "Describes field_b in other language",
-///             )
-///         }
-///     }
-///
-///     assert_eq!(YourStructDescription::default(), YourStructDescription(
-///         "Describes field_a",
-///         "Describes field_b",
-///     ));
-///     assert_eq!(YourStructDescription::i18n_some_language(), YourStructDescription(
-///         "Describes field_a in other language",
-///         "Describes field_b in other language",
-///     ));
-/// }
-/// ```
+/// Feel free to share your use cases by pull requests!
 #[macro_export]
 macro_rules! metadata_only {
     // This rule handles structs:
