@@ -10,6 +10,9 @@ fn test_no_fields() {
         },
         #[derive(PartialEq, Debug)] struct NoFieldsMetadata: (),
     );
+    assert_eq!(NoFields {}, NoFields {});
+    assert_eq!(NoFieldsMetadata {}, NoFieldsMetadata {});
+
     metadata!(
         {
             #[derive(PartialEq, Debug)]
@@ -17,8 +20,6 @@ fn test_no_fields() {
         },
         #[derive(PartialEq, Debug)] struct NoFieldsTupleMetadata: (),
     );
-    assert_eq!(NoFields {}, NoFields {});
-    assert_eq!(NoFieldsMetadata {}, NoFieldsMetadata {});
     assert_eq!(NoFieldsTuple(), NoFieldsTuple());
     assert_eq!(NoFieldsTupleMetadata(), NoFieldsTupleMetadata());
 }
@@ -43,6 +44,22 @@ fn test_multiple_metadata_structs() {
     assert_eq!(OptionUnit::default(), OptionUnit { field_a: None, field_b: None });
     assert_eq!(Unit::default(), Unit { field_a: (), field_b: () });
     assert_eq!(StringLiteralB::default(), StringLiteralB { field_a: "", field_b: "" });
+
+    metadata!(
+        {
+            #[derive(PartialEq, Debug, Default)]
+            struct MultipleMetadataStructsTuple(bool, usize);
+        },
+        #[derive(PartialEq, Debug, Default)] struct StringLiteralTupleA: &'static str,
+        #[derive(PartialEq, Debug, Default)] struct OptionUnitTuple: Option<()>,
+        #[derive(PartialEq, Debug, Default)] struct UnitTuple: (),
+        #[derive(PartialEq, Debug, Default)] struct StringLiteralTupleB: &'static str,
+    );
+    assert_eq!(MultipleMetadataStructsTuple::default(), MultipleMetadataStructsTuple(false, 0));
+    assert_eq!(StringLiteralTupleA::default(), StringLiteralTupleA("", ""));
+    assert_eq!(OptionUnitTuple::default(), OptionUnitTuple(None, None));
+    assert_eq!(UnitTuple::default(), UnitTuple((), ()));
+    assert_eq!(StringLiteralTupleB::default(), StringLiteralTupleB("", ""));
 }
 
 #[test]
@@ -59,10 +76,18 @@ fn test_keywords() {
         struct PrivateStruct: (),
         pub(crate) struct CrateStruct: (),
     );
+    metadata!(
+        {
+            pub(crate) struct StructVisibilityTuple();
+        },
+        pub struct PublicStructTuple: (),
+        struct PrivateStructTuple: (),
+        pub(crate) struct CrateStructTuple: (),
+    );
 }
 
 #[test]
-fn test_no_leading_commas() {
+fn test_unusual_leading_commas() {
     metadata!(
         {
             struct NoLeadingComma {
@@ -70,5 +95,11 @@ fn test_no_leading_commas() {
             }
         },
         struct NoLeadingCommaMetadata: ()
+    );
+    metadata!(
+        {
+            struct HasLeadingCommaTuple((),);
+        },
+        struct NoLeadingCommaMetadataTuple: ()
     );
 }
