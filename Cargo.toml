@@ -1,6 +1,6 @@
 [package]
 name = "metadata_macro"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = [ "EndermanbugZJFC <endermanbugzjfc@gmail.com>" ]
 description = "Rust macros for a very elementary metadata-like system in structs and tuple structs."

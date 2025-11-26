@@ -38,6 +38,3 @@ impl YourStructDescription {
     }
 }
 ```
-
-# Known issues
-- Generic type parameters cannot be used in structs wrapped in the macros.

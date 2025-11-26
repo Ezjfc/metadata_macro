@@ -1,7 +1,5 @@
 //! Rust macros for a very elementary metadata-like system in structs and tuple structs.
-//!
-//! # Known issues
-//! - Generic type parameters cannot be used in structs wrapped in the macros.
+
 
 /// The main struct can be defined in whatever way desired.
 /// For non-tuple structs: fields in the metadata structs will inherit visibility from the main
@@ -71,7 +69,7 @@ macro_rules! metadata {
     ) => {
         $crate::put_struct!($main_struct);
         $(
-            metadata_macro::metadata_only!(
+            $crate::metadata_only!(
                 $main_struct,
                 $(#[$metadata_attrs])* $metadata_vis struct $metadata_struct: $metadata_type
             );
@@ -138,7 +136,9 @@ macro_rules! metadata_only {
         {
             $(#[$attrs:meta])*
             $vis:vis
-            struct $name:ident {
+        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // https://stackoverflow.com/a/61189128/13787084
+            struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
                 $(
                     $(#[$field_attrs:meta])*
                     $field_vis:vis
@@ -165,7 +165,9 @@ macro_rules! metadata_only {
         {
             $(#[$attrs:meta])*
             $vis:vis
-            struct $name:ident (
+            // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+            // https://stackoverflow.com/a/61189128/13787084
+            struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
                 $(
                     $(#[$field_attrs:meta])*
                     $type:ty
@@ -204,7 +206,9 @@ macro_rules! put_struct {
     ({
         $(#[$attrs:meta])*
         $vis:vis
-        struct $name:ident {
+        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // https://stackoverflow.com/a/61189128/13787084
+        struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
             $(
                 $(#[$field_attrs:meta])*
                 $field_vis:vis
@@ -215,7 +219,7 @@ macro_rules! put_struct {
     }) => {
         $(#[$attrs])*
         $vis
-        struct $name {
+        struct $name $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? {
             $(
                 $(#[$field_attrs])*
                 $field_vis
@@ -227,7 +231,9 @@ macro_rules! put_struct {
     ({
         $(#[$attrs:meta])*
         $vis:vis
-        struct $name:ident(
+        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // https://stackoverflow.com/a/61189128/13787084
+        struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
             $(
                 $(#[$field_attrs:meta])*
                 $type:ty
@@ -237,7 +243,7 @@ macro_rules! put_struct {
     }) => {
         $(#[$attrs])*
         $vis
-        struct $name(
+        struct $name $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? (
             $(
                 $(#[$field_attrs])*
                 $type,
@@ -265,7 +271,9 @@ macro_rules! put_tuple_discard_type {
     {
         $(#[$attrs:meta])*
         $vis:vis
-        struct $name:ident (
+        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // https://stackoverflow.com/a/61189128/13787084
+        struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
             $({
                 discard: $discard:ty,
                 keep: $keep:ty,
@@ -275,7 +283,7 @@ macro_rules! put_tuple_discard_type {
     } => {
         $(#[$attrs])*
         $vis
-        struct $name (
+        struct $name $(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)? (
             $($keep,)*
         );
     };

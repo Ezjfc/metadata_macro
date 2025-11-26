@@ -131,6 +131,50 @@ fn test_doc_comments() {
     );
 }
 
+#[test]
+fn test_generics_and_lifetimes() {
+    #[derive(Default, PartialEq, Debug)]
+    struct HasGenerics<T>(T);
+    #[derive(Default, PartialEq, Debug)]
+    struct HasLifetimes<'a>(Option<&'a ()>);
+    #[derive(Default, PartialEq, Debug)]
+    struct HasBoth<'a, T>(T, Option<&'a ()>);
+
+    metadata!(
+        {
+            #[derive(Default, PartialEq, Debug)]
+            struct Polymorpher<'a, 'b: 'static, T> {
+                normal_field_a: bool,
+                has_generics: T,
+                has_lifetimes: Option<&'a ()>,
+                has_both: Option<&'a T>,
+
+                passes_generics: HasGenerics<T>,
+                passes_lifetimes: HasLifetimes<'a>,
+                passes_both: HasBoth<'a, T>,
+
+                has_nested_lifetimes: &'b str,
+                normal_field_b: usize,
+            }
+        },
+        struct PolymorpherMetadata: (),
+    );
+    let default: Polymorpher<'_, '_, usize> = Polymorpher::default();
+    assert_eq!(default, Polymorpher {
+        normal_field_a: false,
+        has_generics: 0,
+        has_lifetimes: None,
+        has_both: None,
+
+        passes_generics: HasGenerics(0),
+        passes_lifetimes: HasLifetimes(None),
+        passes_both: HasBoth(0, None),
+
+        has_nested_lifetimes: "",
+        normal_field_b: 0,
+    })
+}
+
 #[cfg(feature = "advanced-tests")]
 #[test]
 fn test_attributes_derive_clap() {
