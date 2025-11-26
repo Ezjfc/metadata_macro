@@ -87,20 +87,21 @@ fn test_keywords() {
 }
 
 #[test]
-fn test_unusual_leading_commas() {
+fn test_unusual_syntax() {
     metadata!(
         {
             struct NoLeadingComma {
+                spaced_tokens : ( ) ,
                 no_leading_comma: ()
             }
         },
-        struct NoLeadingCommaMetadata: ()
+        struct NoLeadingCommaSpacedTokensMetadata : ( )
     );
     metadata!(
         {
             struct HasLeadingCommaTuple((),);
         },
-        struct NoLeadingCommaTupleMetadata: ()
+        struct NoLeadingCommaSpacedTokensTupleMetadata : ( )
     );
 }
 
@@ -127,5 +128,23 @@ fn test_doc_comments() {
         },
         /// Doc comment.
         struct HasDocCommentTupleMetadata: (),
+    );
+}
+
+#[cfg(feature = "advanced-tests")]
+#[test]
+fn test_attributes_derive_clap() {
+    use clap::Parser;
+    metadata!(
+        {
+            #[derive(Parser)]
+            struct ClapParser {
+                normal_field_a: bool,
+                #[clap(long)]
+                clap_parser_field: bool,
+                normal_field_b: usize,
+            }
+        },
+        struct ClapParserMetadata: (),
     );
 }
