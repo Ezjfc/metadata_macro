@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "structfield_metadata"
+name = "metadata_macro"
 version = "0.1.0"

@@ -1,4 +1,4 @@
-use structfield_metadata::metadata;
+use metadata_macro::metadata;
 
 #[test]
 fn test_no_fields() {

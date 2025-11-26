@@ -1,11 +1,11 @@
-# Structfield Metadata
+# Metadata Macro
 Rust macros for a very elementary metadata-like system in structs and tuple structs.
 
 # Examples
 This example declares a private main struct with two fields and a private metadata struct to
 hold the multilingual description of the fields:
 ```rs
-use structfield_metadata::metadata;
+use metadata_macro::metadata;
 
 metadata!({
         #[derive(Default, PartialEq, Debug)]

@@ -11,7 +11,7 @@
 /// This example declares a private main struct with two fields and a private metadata struct to
 /// hold the multilingual description of the fields:
 /// ```
-/// #[macro_use] extern crate structfield_metadata;
+/// #[macro_use] extern crate metadata_macro;
 ///
 /// fn main() {
 ///     metadata!({
@@ -68,7 +68,7 @@ macro_rules! metadata {
     ) => {
         $crate::put_struct!($main_struct);
         $(
-            structfield_metadata::metadata_only!(
+            metadata_macro::metadata_only!(
                 $main_struct,
                 $(#[$metadata_attrs])* $metadata_vis struct $metadata_struct: $metadata_type
             );
@@ -86,7 +86,7 @@ macro_rules! metadata {
 /// This example only declares a private metadata struct to hold the multilingual description of
 /// two fields:
 /// ```
-/// #[macro_use] extern crate structfield_metadata;
+/// #[macro_use] extern crate metadata_macro;
 ///
 /// fn main() {
 ///     metadata_only!({
