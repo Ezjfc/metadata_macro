@@ -84,6 +84,19 @@ fn test_keywords() {
         struct PrivateStructTuple: (),
         pub(crate) struct CrateStructTuple: (),
     );
+    metadata!(
+        {
+            struct OptionalKeyword {
+            }
+        },
+        OptionalKeywordMetadata: (),
+    );
+    metadata!(
+        {
+            struct OptionalKeywordTuple();
+        },
+        OptionalKeywordTupleMetadata: (),
+    );
 }
 
 #[test]
@@ -191,12 +204,7 @@ fn test_attributes_derive_clap() {
         },
         struct ClapParserMetadata: (),
     );
-    metadata!(
-        {
-            struct HasLeadingCommaTuple((),);
-        },
-        struct NoLeadingCommaMetadataTuple: ()
-    );
+    // Note: Clap Parser does not support tuples, this test case needs improvements.
 }
 
 #[test]

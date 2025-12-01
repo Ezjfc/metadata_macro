@@ -1,12 +1,12 @@
 //! Rust macros for a very elementary metadata-like system in structs and tuple structs.
 
 
+/// This macro receives a main struct and multiple metadata structs. The main struct will remain in
+/// its original form while its fields will change the type and be taken to each metadata struct.
+///
 /// The main struct can be defined in whatever way desired.
 /// For non-tuple structs: fields in the metadata structs will inherit visibility from the main
 /// struct.
-///
-/// This macro receives a main struct and multiple metadata structs. The main struct will remain in
-/// its original form while its fields will change the type and be taken to each metadata struct.
 ///
 /// # Examples
 /// This example declares a private main struct with two fields and a private metadata struct to
@@ -60,6 +60,7 @@
 #[macro_export]
 macro_rules! metadata {
     (
+        // This rule supports attributes and visiblity in metadata structs:
         $main_struct:tt,
         $(
             $(#[$metadata_attrs:meta])*
@@ -76,14 +77,32 @@ macro_rules! metadata {
             );
         )+
     };
+    (
+        // This rule does not require using the `struct` keyword at the cost attributes and
+        // visibility. It exists to maintain syntactic consistency with procedural macros:
+        $main_struct:tt,
+        $(
+            $metadata_struct:ident: $metadata_type:ty
+        ),+
+        $(,)*
+    ) => {
+        $crate::put_struct!($main_struct);
+        $(
+            $crate::metadata_only!(
+                $main_struct,
+                struct $metadata_struct: $metadata_type
+            );
+        )+
+    };
 }
 
+/// This macro receives a main struct and a metadata struct. The main struct will be discarded,
+/// its fields will change the type and be taken to the metadata struct.
+///
 /// The main struct can be defined in whatever way desired.
 /// For non-tuple structs: fields in the metadata structs will inherit visibility from the main
 /// struct.
 ///
-/// This macro receives a main struct and a metadata struct. The main struct will be discarded,
-/// its fields will change the type and be taken to the metadata struct.
 /// # Examples
 /// This example only declares a private metadata struct to hold the multilingual description of
 /// two fields:
@@ -131,15 +150,17 @@ macro_rules! metadata {
 /// }
 /// ```
 /// Feel free to share your use cases by pull requests!
+///
+/// # Development Notes
+/// This magic pattern matches generic type parameters and struct lifetimes:
+/// <https://stackoverflow.com/a/61189128/13787084>
 #[macro_export]
 macro_rules! metadata_only {
-    // This rule handles structs:
     (
+        // This rule handles structs:
         {
             $(#[$attrs:meta])*
             $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
-        // https://stackoverflow.com/a/61189128/13787084
             struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
                 $(
                     $(#[$field_attrs:meta])*
@@ -155,20 +176,18 @@ macro_rules! metadata_only {
     ) => {
         $(#[$metadata_attrs])*
         $metadata_vis
-        struct $metadata_struct $(<$($generics)*>)? {
+        struct $metadata_struct {
             $(
                 $field_vis
                 $field: $metadata_type,
             )*
         }
     };
-    // This rule handles tuple structs:
     (
+        // This rule handles tuple structs:
         {
             $(#[$attrs:meta])*
             $vis:vis
-            // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
-            // https://stackoverflow.com/a/61189128/13787084
             struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
                 $(
                     $(#[$field_attrs:meta])*
@@ -180,6 +199,62 @@ macro_rules! metadata_only {
         $(#[$metadata_attrs:meta])*
         $metadata_vis:vis
         struct $metadata_struct:ident: $metadata_type:ty
+    ) => {
+        $crate::put_tuple_discard_type!{
+            $(#[$metadata_attrs])*
+            $metadata_vis
+            struct $metadata_struct (
+                $({
+                    discard: $type,
+                    keep: $metadata_type,
+                },)*
+            );
+        };
+    };
+
+    (
+        // This rule handles structs but does not require using the `struct` keyword at the cost
+        // attributes and visibility. It exists to maintain syntactic consistency with procedural
+        // macros:
+        {
+            $(#[$attrs:meta])*
+            $vis:vis
+            struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
+                $(
+                    $(#[$field_attrs:meta])*
+                    $field_vis:vis
+                    $field:ident: $type:ty
+                ),*
+                $(,)?
+            }
+        },
+        $metadata_struct:ident: $metadata_type:ty
+    ) => {
+        $(#[$metadata_attrs])*
+        $metadata_vis
+        struct $metadata_struct {
+            $(
+                $field_vis
+                $field: $metadata_type,
+            )*
+        }
+    };
+    (
+        // This rule handles tuple structs but does not require using the `struct` keyword at the
+        // cost attributes and visibility. It exists to maintain syntactic consistency with
+        // procedural macros:
+        {
+            $(#[$attrs:meta])*
+            $vis:vis
+            struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
+                $(
+                    $(#[$field_attrs:meta])*
+                    $type:ty
+                ),*
+                $(,)?
+            );
+        },
+        $metadata_struct:ident: $metadata_type:ty
     ) => {
         $crate::put_tuple_discard_type!{
             $(#[$metadata_attrs])*
@@ -204,12 +279,10 @@ macro_rules! metadata_only {
 #[macro_export]
 // #[deprecated = "For internal use only."]
 macro_rules! put_struct {
-    // This rule handles structs:
     ({
+        // This rule handles structs:
         $(#[$attrs:meta])*
         $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
-        // https://stackoverflow.com/a/61189128/13787084
         struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
             $(
                 $(#[$field_attrs:meta])*
@@ -229,12 +302,10 @@ macro_rules! put_struct {
             )*
         }
     };
-    // This rule handles tuple structs:
     ({
+        // This rule handles tuple structs:
         $(#[$attrs:meta])*
         $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
-        // https://stackoverflow.com/a/61189128/13787084
         struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
             $(
                 $(#[$field_attrs:meta])*
@@ -273,8 +344,6 @@ macro_rules! put_tuple_discard_type {
     {
         $(#[$attrs:meta])*
         $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
-        // https://stackoverflow.com/a/61189128/13787084
         struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
             $({
                 discard: $discard:ty,
