@@ -1,12 +1,16 @@
 //! Rust macros for a very elementary metadata-like system in structs and tuple structs.
+//! # Known Issues
+//! - Despite having basic supports for generic type parameters and lifetimes,
+//!   nested trait bounds are not yet supported, such as `T: AsRef<...>` or
+//!   `T: Iterator<Item = ...>`.
 
 
+/// This macro receives a main struct and multiple metadata structs. The main struct will remain in
+/// its original form while its fields will change the type and be taken to each metadata struct.
+///
 /// The main struct can be defined in whatever way desired.
 /// For non-tuple structs: fields in the metadata structs will inherit visibility from the main
 /// struct.
-///
-/// This macro receives a main struct and multiple metadata structs. The main struct will remain in
-/// its original form while its fields will change the type and be taken to each metadata struct.
 ///
 /// # Examples
 /// This example declares a private main struct with two fields and a private metadata struct to
@@ -79,12 +83,13 @@ macro_rules! metadata {
     };
 }
 
+/// This macro receives a main struct and a metadata struct. The main struct will be discarded,
+/// its fields will change the type and be taken to the metadata struct.
+///
 /// The main struct can be defined in whatever way desired.
 /// For non-tuple structs: fields in the metadata structs will inherit visibility from the main
 /// struct.
 ///
-/// This macro receives a main struct and a metadata struct. The main struct will be discarded,
-/// its fields will change the type and be taken to the metadata struct.
 /// # Examples
 /// This example only declares a private metadata struct to hold the multilingual description of
 /// two fields:
