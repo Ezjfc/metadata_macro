@@ -63,7 +63,9 @@ macro_rules! metadata {
         $(
             $(#[$metadata_attrs:meta])*
             $metadata_vis:vis
-            struct $metadata_struct:ident: $metadata_type:ty
+            // This magic pattern matches generic type parameters and struct lifetimes:
+            // https://stackoverflow.com/a/61189128/13787084
+            struct $metadata_struct:ident$(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)?: $metadata_type:ty
         ),+
         $(,)*
     ) => {
@@ -71,7 +73,7 @@ macro_rules! metadata {
         $(
             $crate::metadata_only!(
                 $main_struct,
-                $(#[$metadata_attrs])* $metadata_vis struct $metadata_struct: $metadata_type
+                $(#[$metadata_attrs])* $metadata_vis struct $metadata_struct$(< $( $lt $( : $clt $(+ $dlt )* )? ),+ >)?: $metadata_type
             );
         )+
     };
@@ -136,8 +138,8 @@ macro_rules! metadata_only {
         {
             $(#[$attrs:meta])*
             $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
-        // https://stackoverflow.com/a/61189128/13787084
+            // This magic pattern matches generic type parameters and struct lifetimes:
+            // https://stackoverflow.com/a/61189128/13787084
             struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
                 $(
                     $(#[$field_attrs:meta])*
@@ -149,11 +151,13 @@ macro_rules! metadata_only {
         },
         $(#[$metadata_attrs:meta])*
         $metadata_vis:vis
-        struct $metadata_struct:ident: $metadata_type:ty
+        // This magic pattern matches generic type parameters and struct lifetimes:
+        // https://stackoverflow.com/a/61189128/13787084
+        struct $metadata_struct:ident $(< $( $mlt:tt $( : $mclt:tt $(+ $mdlt:tt )* )? ),+ >)?: $metadata_type:ty
     ) => {
         $(#[$metadata_attrs])*
         $metadata_vis
-        struct $metadata_struct {
+        struct $metadata_struct $(< $( $mlt $( : $mclt $(+ $mdlt )* )? ),+ >)? {
             $(
                 $field_vis
                 $field: $metadata_type,
@@ -165,7 +169,7 @@ macro_rules! metadata_only {
         {
             $(#[$attrs:meta])*
             $vis:vis
-            // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+            // This magic pattern matches generic type parameters and struct lifetimes:
             // https://stackoverflow.com/a/61189128/13787084
             struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
                 $(
@@ -177,12 +181,14 @@ macro_rules! metadata_only {
         },
         $(#[$metadata_attrs:meta])*
         $metadata_vis:vis
-        struct $metadata_struct:ident: $metadata_type:ty
+        // This magic pattern matches generic type parameters and struct lifetimes:
+        // https://stackoverflow.com/a/61189128/13787084
+        struct $metadata_struct:ident $(< $( $mlt:tt $( : $mclt:tt $(+ $mdlt:tt )* )? ),+ >)?: $metadata_type:ty
     ) => {
         $crate::put_tuple_discard_type!{
             $(#[$metadata_attrs])*
             $metadata_vis
-            struct $metadata_struct (
+            struct $metadata_struct $(< $( $mlt $( : $mclt $(+ $mdlt )* )? ),+ >)? (
                 $({
                     discard: $type,
                     keep: $metadata_type,
@@ -206,7 +212,7 @@ macro_rules! put_struct {
     ({
         $(#[$attrs:meta])*
         $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // This magic pattern matches generic type parameters and struct lifetimes:
         // https://stackoverflow.com/a/61189128/13787084
         struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? {
             $(
@@ -231,7 +237,7 @@ macro_rules! put_struct {
     ({
         $(#[$attrs:meta])*
         $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // This magic pattern matches generic type parameters and struct lifetimes:
         // https://stackoverflow.com/a/61189128/13787084
         struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
             $(
@@ -271,7 +277,7 @@ macro_rules! put_tuple_discard_type {
     {
         $(#[$attrs:meta])*
         $vis:vis
-        // The magic pattern next to `$name` matches generic type parameters and struct lifetimes:
+        // This magic pattern matches generic type parameters and struct lifetimes:
         // https://stackoverflow.com/a/61189128/13787084
         struct $name:ident $(< $( $lt:tt $( : $clt:tt $(+ $dlt:tt )* )? ),+ >)? (
             $({

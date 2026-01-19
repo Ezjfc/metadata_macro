@@ -158,6 +158,8 @@ fn test_generics_and_lifetimes() {
             }
         },
         struct PolymorpherMetadata: (),
+        struct PolymorpherWithOwnGenericsMetadata<T, E>: Result<T, E>,
+        struct PolymorpherWithOwnGenericsAndLifetimesMetadata<'a, E>: Result<&'a str, E>,
     );
     let default: Polymorpher<'_, '_, usize> = Polymorpher::default();
     assert_eq!(default, Polymorpher {
